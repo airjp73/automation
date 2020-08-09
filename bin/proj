@@ -94,7 +94,7 @@ elif [[ $COMMAND == "open" ]]; then
 elif [[ $COMMAND == "run" ]]; then
   if [[ $RUN_FROM_PYTHON == false ]]; then
     for project; do
-      python3 ~/coding/scripts/runInNewTab.py "~/coding/scripts/bin/proj run $project -r $PROJECT_REPOS -p "  $project
+      python3 ~/coding/scripts/python/runInNewTab.py "~/coding/scripts/bin/proj run $project -r $PROJECT_REPOS -p "  $project
     done
   elif is_js "$PROJECT_REPOS/$1"; then
     cd "$PROJECT_REPOS/$1"
