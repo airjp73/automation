@@ -1,0 +1,13 @@
+#!/bin/bash
+
+yarn unlink $1
+yarn unlink react
+yarn unlink react-dom
+yarn install --force
+
+cd "../$1"
+yarn unlink
+cd node_modules/react
+yarn unlink
+cd ../react-dom
+yarn unlink

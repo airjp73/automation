@@ -1,0 +1,5 @@
+#!/bin/bash
+
+INIT_LOCATION=~/.config/nvim/init.vim
+echo Opening init.vim at $INIT_LOCATION
+nvim $INIT_LOCATION

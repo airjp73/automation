@@ -1,0 +1,23 @@
+#!/bin/bash
+
+cd ~/Movies
+
+dir=$(date '+%Y-%m-%d');
+
+mkdir "$dir";
+cd "$dir";
+mkdir "mkv";
+mkdir "mp4";
+cd ..
+
+shopt -s nullglob # ensure we never process just .mkv
+for i in *.mkv; do
+  mv "$i" "$dir/mkv/$i";
+  cd "$dir";
+  baseFileName=$(basename "$i" .mkv)
+  echo "$baseFileName";
+  ffmpeg -i "./mkv/$i" -codec copy "./mp4/${i%.mkv}.mp4"
+done
+
+echo "Files converted and put into directory $dir"
+
