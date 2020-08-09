@@ -1,0 +1,138 @@
+#!/bin/bash
+
+# Running this from the python script doesn't seem to have the same PATH
+export PATH=/usr/local/bin:$PATH
+
+PROJECT_REPOS=~/coding/personal
+POSITIONAL=()
+RUN_FROM_PYTHON=false
+
+# Parsing arguments
+while test $# -gt 0; do
+  case "$1" in
+    -p|--python)
+      shift
+      RUN_FROM_PYTHON=true
+      ;;
+    -r|--repos)
+      shift
+      PROJECT_REPOS=$1
+      ;;
+    *)
+      POSITIONAL+=($1)
+      ;;
+  esac
+  shift
+done
+set -- "${POSITIONAL[@]}" # restore positional args
+
+# Grab command
+COMMAND=$1
+shift
+
+
+# Functions
+is_js () {
+  if test -f "$1/package.json"; then
+    return 0;
+  else
+    return 1;
+  fi
+}
+
+# Error handling when run from python script
+show_error() {
+  echo Whoops!
+  read -n 1 -p "An error ocurred"
+}
+if [ $RUN_FROM_PYTHON = true ]; then
+  trap show_error EXIT
+fi
+
+###################################### Commands
+########## Checkout
+if [[ $COMMAND == "checkout" ]]; then
+  branch=$1
+  shift
+
+  for project; do
+    echo "Checking out $branch for $project"
+    cd "$PROJECT_REPOS/$project"
+    git checkout $branch
+    git pull
+    if is_js "$PROJECT_REPOS/$project"; then
+      yarn install
+    fi
+  done
+
+########## Open
+elif [[ $COMMAND == "open" ]]; then
+  javaTrees=()
+  jsTrees=()
+
+  for project; do
+    if is_js "$PROJECT_REPOS/$project"; then
+      code "$PROJECT_REPOS/$project"
+      jsTrees+=("$PROJECT_REPOS/$project")
+    else
+      javaTrees+=("$PROJECT_REPOS/$project")
+    fi
+  done
+
+  if [ $jsTrees ]; then
+    echo Opening JS projects
+    echo "${jsTrees[@]}"
+  fi
+
+  if [ $javaTrees ]; then
+    echo Opening Java projects
+    echo "${javaTrees[@]}"
+    idea "${javaTrees[@]}"
+  fi
+
+########## Run
+elif [[ $COMMAND == "run" ]]; then
+  if [[ $RUN_FROM_PYTHON == false ]]; then
+    for project; do
+      python3 ~/coding/scripts/runInNewTab.py "~/coding/scripts/bin/proj run $project -r $PROJECT_REPOS -p "  $project
+    done
+  elif is_js "$PROJECT_REPOS/$1"; then
+    cd "$PROJECT_REPOS/$1"
+    yarn install
+    yarn dev
+  else
+    cd "$PROJECT_REPOS/$1"
+
+    ./gradlew -x check -PbuildOnly=true
+    cd ./build/libs
+
+    jars=($1*[^s].jar)
+    jar="${jars[0]}"
+    java -jar "$jar" --spring.profiles.active=dev
+  fi
+
+########## Help
+elif [[ $COMMAND == "help" ]]; then
+  echo "**************************************************"
+  echo "******************My Project CLI******************"
+  echo "**************************************************"
+  echo "A set of useful commands for quickly opening and checking out projects."
+  echo " "
+  echo "Usage:"
+  echo "proj <command> [<args>]"
+  echo " "
+  echo "Available Commands:"
+  echo "- proj checkout <branchname> <projects>"
+  echo "  - Checks out the specified branch on all specified projects and runs 'yarn install' on JS projects"
+  echo "- proj open <projects>"
+  echo "  - Opens all the specified projets in IntelliJ or VSCode"
+  echo "- proj run <projects>"
+  echo "  - Runs all the specified projects"
+  echo " "
+  echo "ENV Variables:"
+  echo "- PROJECT_REPOS  : The directory where all the projects are located"
+  echo "  - Defaults to: ~/coding/personal"
+
+else
+  echo "Invalid command, $COMMAND. Try 'ev help' for more usage info"
+fi
