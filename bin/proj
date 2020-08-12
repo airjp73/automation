@@ -102,6 +102,9 @@ elif [[ $COMMAND == "run" ]]; then
     yarn dev
   else
     cd "$PROJECT_REPOS/$1"
+    if [ ! -z $(grep -q "sourceCompatibility = '1.8'" ./gradle/java.gradle) ]; then
+      java8
+    fi
 
     ./gradlew -x check -PbuildOnly=true
     cd ./build/libs
