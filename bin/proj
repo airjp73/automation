@@ -71,11 +71,16 @@ elif [[ $COMMAND == "open" ]]; then
   jsTrees=()
 
   for project; do
-    if is_js "$PROJECT_REPOS/$project"; then
-      code "$PROJECT_REPOS/$project"
-      jsTrees+=("$PROJECT_REPOS/$project")
+    projectDir="$PROJECT_REPOS/$project"
+    if [ -d $projectDir ]; then
+      if is_js $projectDir ; then
+        code $projectDir
+        jsTrees+=($projectDir)
+      else
+        javaTrees+=($projectDir)
+      fi
     else
-      javaTrees+=("$PROJECT_REPOS/$project")
+      echo "Project $project does not exist"
     fi
   done
 
