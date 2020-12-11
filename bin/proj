@@ -98,7 +98,7 @@ elif [[ $COMMAND == "run" ]]; then
     done
   elif is_js "$PROJECT_REPOS/$1"; then
     cd "$PROJECT_REPOS/$1"
-    yarn install
+    yarn install --force
     yarn dev
   else
     cd "$PROJECT_REPOS/$1"
